@@ -1,0 +1,236 @@
+﻿@{
+    ViewData["Title"] = "AI Banking Assistant";
+}
+
+<style>
+
+    body {
+        font-family: Arial;
+        background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .main-container {
+        width: 420px;
+    }
+
+    /* SEARCH BAR */
+
+    .search-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .search-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+
+    .search-btn {
+        width: 100%;
+        padding: 10px;
+        background: #28a745;
+        border: none;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+        .search-btn:hover {
+            background: #1f8a38;
+        }
+
+    .results {
+        margin-top: 10px;
+        background: #f3f3f3;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    /* CHATBOT */
+
+    .chat-container {
+        width: 100%;
+        height: 500px;
+        background: white;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .header {
+        background: #0078ff;
+        color: white;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background: #f5f5f5;
+    }
+
+    .message {
+        margin: 10px 0;
+        padding: 10px 14px;
+        border-radius: 12px;
+        max-width: 75%;
+    }
+
+    .user {
+        background: #0078ff;
+        color: white;
+        margin-left: auto;
+    }
+
+    .bot {
+        background: #e4e6eb;
+    }
+
+    .input-area {
+        display: flex;
+        border-top: 1px solid #ddd;
+    }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            outline: none;
+        }
+
+    button {
+        background: #0078ff;
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        cursor: pointer;
+    }
+
+        button:hover {
+            background: #005fcc;
+        }
+
+</style>
+
+
+<div class="main-container">
+
+    <!-- SEARCH BAR -->
+
+    <div class="search-box">
+
+        <div class="search-title">
+            Smart  Search 
+        </div>
+
+        <input id="searchQuery"
+               class="search-input"
+               placeholder="ask us suggestions " />
+
+        <button class="search-btn" onclick="searchPlans()">
+            🔍
+        </button>
+
+        <div id="searchResults" class="results"></div>
+
+    </div>
+
+
+    <!-- CHATBOT -->
+
+    <div class="chat-container">
+
+        <div class="header">
+            AI Banking Assistant 🤖
+        </div>
+
+        <div id="messages" class="messages"></div>
+
+        <div class="input-area">
+            <input id="msg" placeholder="Ask about claims, loans..." />
+            <button onclick="send()">Send</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    async function searchPlans(){
+
+    let query=document.getElementById("searchQuery").value;
+
+    if(query.trim()=="") return;
+
+    let res=await fetch("/investment/search",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:query})
+    });
+
+    let text=await res.text();
+
+    document.getElementById("searchResults").innerText=text;
+
+    }
+
+    /* CHATBOT */
+
+    async function send(){
+
+    let msg=document.getElementById("msg").value;
+
+    if(msg.trim()=="") return;
+
+    let messages=document.getElementById("messages");
+
+    messages.innerHTML+=
+    `<div class="message user">${msg}</div>`;
+
+    document.getElementById("msg").value="";
+
+    let res=await fetch("/chat/ask",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:msg})
+    });
+
+    let text=await res.text();
+
+    messages.innerHTML+=
+    `<div class="message bot">${text}</div>`;
+
+    messages.scrollTop = messages.scrollHeight;
+
+    }
+
+    document.getElementById("msg").addEventListener("keypress", function(e) {
+    if(e.key==="Enter"){
+    send();
+    }
+    });
+
+</script>
